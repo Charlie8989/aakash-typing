@@ -1,9 +1,29 @@
 "use client";
 import { v4 as uuidv4 } from "uuid";
 import { useRouter } from "next/navigation";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { useState } from "react";
 
 const Dialog = ({ open, onClose, onStart }) => {
+  const insertDummyUser = useMutation(api.user.insertDummyUser);
+
+  const [name, setName] = useState("");
+  const [mode, setMode] = useState("practice");
+
   if (!open) return null;
+
+  const handleStart = async () => {
+    if (!name) {
+      alert("Name missing");
+      return;
+    }
+    const id = await insertDummyUser({
+      name,
+      selected_mode: mode,
+    });
+    localStorage.setItem("userId", JSON.stringify(id));
+  };
 
   const goFullScreen = () => {
     if (document.documentElement.requestFullscreen) {
@@ -16,6 +36,7 @@ const Dialog = ({ open, onClose, onStart }) => {
   const startTest = () => {
     const testId = uuidv4();
     router.push(`/test/${testId}`);
+    // localStorage.setItem("testId", testId);
   };
 
   return (
@@ -30,11 +51,18 @@ const Dialog = ({ open, onClose, onStart }) => {
         <div className="space-y-4">
           <input
             type="text"
+            value={name}
             placeholder="Enter your name"
             className="w-full border p-2 rounded"
+            onChange={(e) => setName(e.target.value)}
           />
 
-          <select className="w-full border p-2 rounded" required>
+          <select
+            className="w-full border p-2 rounded"
+            required
+            value={mode}
+            onChange={(e) => setMode(e.target.value)}
+          >
             <option>Select mode</option>
             <option>Practice</option>
             <option>Exam</option>
@@ -44,7 +72,8 @@ const Dialog = ({ open, onClose, onStart }) => {
             onClick={() => {
               onStart();
               startTest();
-              goFullScreen();
+              // goFullScreen();
+              handleStart();
             }}
             className="w-full bg-purple-600 text-white py-2 rounded"
           >

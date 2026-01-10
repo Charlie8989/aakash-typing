@@ -1,10 +1,26 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import Button from "@/components/Button";
+import { api } from "@/convex/_generated/api";
+import { useMutation } from "convex/react";
+import { useParams, useRouter } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
 
 const Page = () => {
+  const router = useRouter();
   const [fontSize, setFontsize] = useState(17);
-  const [secondtimer, setsecondTimer] = useState(60);
-  const [minutetimer, setminuteTimer] = useState(5);
+  const [secondtimer, setsecondTimer] = useState(59);
+  const [minutetimer, setminuteTimer] = useState(4);
+  const editorRef = useRef(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const saveResult = useMutation(api.results.saveResult);
+  const { testId } = useParams();
+  const backspaceCountRef = useRef(0);
+
+  useEffect(() => {
+    const id = localStorage.getItem("userId");
+    if (id) setUserId(JSON.parse(id));
+  }, []);
 
   useEffect(() => {
     if (secondtimer <= 0) return;
@@ -39,6 +55,76 @@ const Page = () => {
     console.log(fontSize);
   };
 
+  const originalText = `रकोेतदाा ादा ादा ाद`;
+
+  const normalizeText = (text) =>
+    text.normalize("NFC").replace(/\s+/g, " ").trim();
+
+  const checkErrors = () => {
+    const typedText = normalizeText(editorRef.current?.innerText || "");
+    const original = normalizeText(originalText);
+
+    const originalWords = original.split(" ");
+    const typedWords = typedText.split(" ");
+
+    let wrongWords = [];
+    let missingWords = [];
+
+    originalWords.forEach((word, index) => {
+      if (!typedWords[index]) {
+        missingWords.push(word);
+      } else if (typedWords[index] !== word) {
+        wrongWords.push({
+          expected: word,
+          typed: typedWords[index],
+          position: index,
+        });
+      }
+    });
+
+    return {
+      totalWords: originalWords.length,
+      typedWords: typedWords.length,
+      wrongWords,
+      missingWords,
+      backspace: backspaceCountRef.current,
+    };
+  };
+
+  const handleSubmit = async () => {
+    if (!userId) {
+      alert("User not found");
+      return;
+    }
+
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      const result = checkErrors();
+
+      await saveResult({
+        userId,
+        totalWords: result.totalWords,
+        typedWords: result.typedWords,
+        wrongWords: result.wrongWords,
+        missingWords: result.missingWords,
+        backspace: result.backspace,
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      router.push(`/test/${testId}/result`);
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Backspace") {
+      backspaceCountRef.current += 1;
+    }
+  };
+
   return (
     <div>
       <div className="flex sm:flex-row px-5 flex-col items-center justify-between">
@@ -58,23 +144,22 @@ const Page = () => {
         style={{ fontSize: `${fontSize}px` }}
         className="m-4 border-2 p-3 rounded-md "
       >
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Qui laboriosam
-        facere, laborum omnis voluptatum architecto dicta, aliquid nam quasi
-        delectus vel magnam voluptatibus asperiores molestias reprehenderit quas
-        nemo neque voluptates voluptatem enim pariatur, assumenda iste? Quasi,
-        voluptates voluptas atque minus sint quaerat sit harum quisquam
-        temporibus ratione dolor officia placeat illum quod autem pariatur, nisi
-        quas? Nostrum quam veniam inventore. Impedit possimus non totam commodi
-        distinctio expedita consequuntur explicabo unde error aperiam eaque
-        dolore hic minima sit sequi vitae fuga maxime esse quos eius nulla,
-        quasi placeat aut! Minus cumque aliquam sequi sit ipsum eum possimus
-        voluptatem illum eos corporis.
+        {originalText}
       </div>
 
       <div
+        ref={editorRef}
+        onKeyDown={handleKeyDown}
         contentEditable
-        className="min-h-[50vh] max-h-fit border-2 rounded-md border-purple-300 bg-purple-100 outline-none m-4 p-3"
+        className="min-h-[60vh] max-h-fit border-2 rounded-md border-purple-300 bg-purple-100 outline-none m-4 p-3"
       ></div>
+      <div className="flex justify-end sm:mt-10 mt-5  px-4">
+        <Button
+          text={isSubmitting ? "Submitting..." : "Submit Test"}
+          disabled={isSubmitting}
+          onClick={handleSubmit}
+        />
+      </div>
     </div>
   );
 };
