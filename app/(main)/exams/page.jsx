@@ -1,70 +1,30 @@
+"use client";
 import React from "react";
 import Card from "../_components/Card";
-
-const exams = [
-  {
-    id: 1,
-    name: "Typing Beginner",
-    createdAt: "12 Sep 2025",
-    words: 200,
-    time: 2,
-  },
-  {
-    id: 2,
-    name: "Intermediate Test",
-    createdAt: "18 Sep 2025",
-    words: 350,
-    time: 3,
-  },
-  {
-    id: 3,
-    name: "Pro Speed Test",
-    createdAt: "22 Sep 2025",
-    words: 500,
-    time: 5,
-  },
-  {
-    id: 4,
-    name: "Intermediate Test",
-    createdAt: "18 Sep 2025",
-    words: 350,
-    time: 3,
-  },{
-    id: 5,
-    name: "Intermediate Test",
-    createdAt: "18 Sep 2025",
-    words: 350,
-    time: 3,
-  },{
-    id: 6,
-    name: "Intermediate Test",
-    createdAt: "18 Sep 2025",
-    words: 350,
-    time: 3,
-  },{
-    id: 7,
-    name: "Intermediate Test",
-    createdAt: "18 Sep 2025",
-    words: 350,
-    time: 3,
-  },
-];
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import CardSkeleton from "../_components/CardSkeleton";
 
 const ExamsPage = () => {
+  const exams = useQuery(api.exams.getExams);
+ 
+
   return (
-    <section className="px-6 md:px-16 py-10">
+    <section className="px-6 md:px-16 py-10 min-h-[55vh]">
       <h1 className="text-3xl font-bold mb-8">Available Exams</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {exams.map((exam) => (
-          <Card
-            key={exam.id}
-            name={exam.name}
-            createdAt={exam.createdAt}
-            words={exam.words}
-            time={exam.time}
-          />
-        ))}
+        {!exams
+          ? Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)
+          : exams.map((exam) => (
+              <Card
+                key={exam._id}
+                name={exam.examName}
+                keys={exam.keys}
+                time={exam.time}
+                examId={exam._id}
+              />
+            ))}
       </div>
     </section>
   );

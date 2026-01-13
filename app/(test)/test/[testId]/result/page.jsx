@@ -6,18 +6,49 @@ import { ArrowDownIcon, Loader } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
-const Stat = ({ label, score, color }) => (
+const Stat = ({ label, score, bg, text }) => (
   <div
-    className={`flex justify-between items-center px-4 py-3 rounded-lg bg-${color}-100 text-${color}-600`}
+    className={`flex justify-between items-center px-4 py-3 rounded-lg ${bg} ${text}`}
   >
     <span className="font-medium">{label}</span>
-    <span className="font-semibold text-slate-800">
-      {score} <span className="opacity-50">/ 100</span>
-    </span>
+    <span className="font-semibold text-slate-800">{score}</span>
   </div>
 );
 
-const page = () => {
+const getAccuracyUI = (accuracy) => {
+  if (accuracy >= 90)
+    return {
+      gradient: "from-green-400 to-green-700",
+      circle: "bg-green-800",
+      title: "Excellent",
+      slogan: "Outstanding accuracy! You type like a pro.",
+    };
+
+  if (accuracy >= 75)
+    return {
+      gradient: "from-blue-400 to-blue-700",
+      circle: "bg-blue-800",
+      title: "Great",
+      slogan: "Nice work! Keep pushing for perfection.",
+    };
+
+  if (accuracy >= 50)
+    return {
+      gradient: "from-yellow-400 to-yellow-600",
+      circle: "bg-yellow-700",
+      title: "Good",
+      slogan: "You're improving. Keep practicing.",
+    };
+
+  return {
+    gradient: "from-red-400 to-red-700",
+    circle: "bg-red-800",
+    title: "Needs Improvement",
+    slogan: "Slow down and focus on accuracy.",
+  };
+};
+
+const Page = () => {
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
@@ -34,16 +65,17 @@ const page = () => {
     return (
       <div className="flex w-screen h-[90vh] items-center justify-center">
         <Loader className="size-8 text-purple-400 animate-spin" />
-        <span className="font-semibold font-sans ml-4">
-          Analyzing Your Submission..
-        </span>
+        <span className="font-semibold ml-4">Analyzing Your Submission..</span>
       </div>
     );
+
   if (!result) return <p>No result found</p>;
 
   const accuracy = Math.round(
     ((result.typedWords - result.wrongWords.length) / result.totalWords) * 100
   );
+
+  const ui = getAccuracyUI(accuracy);
 
   return (
     <>
@@ -51,20 +83,21 @@ const page = () => {
 
       <div className="flex justify-center items-center">
         <div className="flex sm:flex-row flex-col justify-center items-stretch mt-10 gap-6">
-          <div className="w-[320px] h-fit sm:h-[460px] rounded-2xl bg-gradient-to-b from-[#a444e4] to-[#8200DB] text-white p-6 shadow-lg flex flex-col justify-between">
+          <div
+            className={`w-[320px] h-fit sm:h-[460px] rounded-2xl bg-gradient-to-b ${ui.gradient} text-white p-6 shadow-lg flex flex-col justify-between`}
+          >
             <div>
               <p className="text-center text-lg opacity-80">Your Accuracy</p>
 
-              <div className="w-36 h-36 mx-auto my-6 rounded-full bg-violet-800 flex flex-col items-center justify-center">
+              <div
+                className={`w-36 h-36 mx-auto my-6 rounded-full ${ui.circle} flex flex-col items-center justify-center`}
+              >
                 <span className="text-5xl font-bold">{accuracy}%</span>
                 <span className="text-sm opacity-70">of 100</span>
               </div>
 
-              <h2 className="text-center text-2xl font-semibold">Great</h2>
-              <p className="text-center text-sm opacity-80 mt-2">
-                Nice work! Keep practicing to improve your typing speed and
-                accuracy.
-              </p>
+              <h2 className="text-center text-2xl font-semibold">{ui.title}</h2>
+              <p className="text-center text-sm opacity-80 mt-2">{ui.slogan}</p>
             </div>
           </div>
 
@@ -76,27 +109,32 @@ const page = () => {
                 <Stat
                   label="Total Words"
                   score={result.totalWords}
-                  color="blue"
+                  bg="bg-blue-100"
+                  text="text-blue-600"
                 />
                 <Stat
                   label="Typed Words"
                   score={result.typedWords}
-                  color="green"
+                  bg="bg-green-100"
+                  text="text-green-600"
                 />
                 <Stat
                   label="Wrong Words"
                   score={result.wrongWords.length}
-                  color="red"
+                  bg="bg-red-100"
+                  text="text-red-600"
                 />
                 <Stat
                   label="Missing Words"
                   score={result.missingWords.length}
-                  color="yellow"
+                  bg="bg-yellow-100"
+                  text="text-yellow-600"
                 />
                 <Stat
                   label="BackSpace Counts"
                   score={result.backspace}
-                  color="purple"
+                  bg="bg-purple-100"
+                  text="text-purple-600"
                 />
               </div>
             </div>
@@ -127,4 +165,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

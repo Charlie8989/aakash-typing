@@ -1,10 +1,12 @@
 "use client";
 import { useState } from "react";
 import Dialog from "./Dialog";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
-const Card = ({ name, words, time }) => {
+const Card = ({ name, keys, time, examId }) => {
   const [open, setOpen] = useState(false);
-
+  const [selectedExamId, setSelectedExamId] = useState(null);
 
   return (
     <>
@@ -12,13 +14,14 @@ const Card = ({ name, words, time }) => {
         <p className="font-bold text-2xl">{name}</p>
 
         <p className="pt-4 flex justify-between">
-          <span>{words} Words</span>
-          <span>{time} Min</span>
+          <span>{keys} Keys</span>
+          <span>{time} </span>
         </p>
 
         <button
           onClick={() => {
             setOpen(true);
+            setSelectedExamId(examId);
           }}
           className="mt-10 w-full bg-white p-3 rounded-md font-medium"
         >
@@ -28,11 +31,9 @@ const Card = ({ name, words, time }) => {
 
       <Dialog
         open={open}
+        examId={examId}
         onClose={() => setOpen(false)}
-        onStart={() => {
-          setOpen(false);
-          console.log("Start exam");
-        }}
+        onStart={() => setOpen(false)}
       />
     </>
   );

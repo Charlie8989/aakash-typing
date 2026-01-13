@@ -6,6 +6,7 @@ export default defineSchema({
     name: v.string(),
     selected_mode: v.string(),
   }),
+
   results: defineTable({
     userId: v.id("user"),
     totalWords: v.number(),
@@ -23,4 +24,12 @@ export default defineSchema({
   })
     .index("by_userId", ["userId"])
     .index("by_userId_createdAt", ["userId", "createdAt"]),
+
+  exams: defineTable({
+    examName:v.string(),
+    createdAt:v.string(),
+    keys:v.string(),
+    paragraph:v.string(),
+    time:v.string(),
+  })
 });

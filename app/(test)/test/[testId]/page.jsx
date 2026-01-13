@@ -2,8 +2,9 @@
 import Button from "@/components/Button";
 import { api } from "@/convex/_generated/api";
 import { useMutation } from "convex/react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
+import { useQuery } from "convex/react";
 
 const Page = () => {
   const router = useRouter();
@@ -16,10 +17,25 @@ const Page = () => {
   const saveResult = useMutation(api.results.saveResult);
   const { testId } = useParams();
   const backspaceCountRef = useRef(0);
+  const exams = useQuery(api.exams.getExams);
+  const examId = useSearchParams().get("examId");
 
   useEffect(() => {
     const id = localStorage.getItem("userId");
     if (id) setUserId(JSON.parse(id));
+  }, []);
+
+  useEffect(() => {
+    const blockKeys = (e) => {
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        ["c", "x", "a", "u"].includes(e.key.toLowerCase())
+      ) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("keydown", blockKeys);
+    return () => document.removeEventListener("keydown", blockKeys);
   }, []);
 
   useEffect(() => {
@@ -54,8 +70,9 @@ const Page = () => {
     setFontsize(20);
     console.log(fontSize);
   };
+  if (!exams || !examId) return null;
 
-  const originalText = `रकोेतदाा ादा ादा ाद`;
+  const originalText = exams.find((e) => e._id === examId)?.paragraph;
 
   const normalizeText = (text) =>
     text.normalize("NFC").replace(/\s+/g, " ").trim();
@@ -142,6 +159,9 @@ const Page = () => {
 
       <div
         style={{ fontSize: `${fontSize}px` }}
+        onCopy={(e) => e.preventDefault()}
+        onCut={(e) => e.preventDefault()}
+        onContextMenu={(e) => e.preventDefault()}
         className="m-4 border-2 p-3 rounded-md "
       >
         {originalText}

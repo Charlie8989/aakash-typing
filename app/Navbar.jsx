@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import EncryptedTextDemoSecond from "./Encrypted";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { User2 } from "lucide-react";
 import { SignOutButton, useUser } from "@clerk/nextjs";
+import dynamic from "next/dynamic";
 
 const Navbar = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -13,6 +13,13 @@ const Navbar = () => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const { isSignedIn, isLoaded, user } = useUser();
+  const EncryptedTextDemoSecond = dynamic(
+  () => import("./Encrypted"),
+  {
+    ssr: false,
+    loading: () => <span className="font-bold">TypeWithAakash</span>,
+  }
+);
 
   useEffect(() => {
     const handleResize = () => {

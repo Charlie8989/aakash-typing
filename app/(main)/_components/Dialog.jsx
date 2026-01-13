@@ -5,8 +5,9 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";
 
-const Dialog = ({ open, onClose, onStart }) => {
+const Dialog = ({ open, onClose, onStart,examId }) => {
   const insertDummyUser = useMutation(api.user.insertDummyUser);
+  // console.log(examId)
 
   const [name, setName] = useState("");
   const [mode, setMode] = useState("practice");
@@ -33,9 +34,9 @@ const Dialog = ({ open, onClose, onStart }) => {
 
   const router = useRouter();
 
-  const startTest = () => {
+  const startTest = (examId) => {
     const testId = uuidv4();
-    router.push(`/test/${testId}`);
+    router.push(`/test/${testId}?examId=${examId}`);
     // localStorage.setItem("testId", testId);
   };
 
@@ -72,7 +73,8 @@ const Dialog = ({ open, onClose, onStart }) => {
             onClick={() => {
               onStart();
               startTest();
-              // goFullScreen();
+              goFullScreen();
+              startTest(examId);
               handleStart();
             }}
             className="w-full bg-purple-600 text-white py-2 rounded"
