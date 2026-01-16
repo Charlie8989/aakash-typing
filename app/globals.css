@@ -121,3 +121,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+html,
+body {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
