@@ -8,8 +8,10 @@ export default defineSchema({
   }),
 
   results: defineTable({
-    userId: v.id("user"),
+    userId: v.string(),
     totalWords: v.number(),
+    examId: v.optional(v.id("exams")),
+    examName: v.optional(v.string()),
     typedWords: v.number(),
     wrongWords: v.array(
       v.object({
@@ -26,10 +28,10 @@ export default defineSchema({
     .index("by_userId_createdAt", ["userId", "createdAt"]),
 
   exams: defineTable({
-    examName:v.string(),
-    createdAt:v.string(),
-    keys:v.string(),
-    paragraph:v.string(),
-    time:v.string(),
-  })
+    examName: v.string(),
+    createdAt: v.string(),
+    keys: v.string(),
+    paragraph: v.string(),
+    time: v.string(),
+  }),
 });

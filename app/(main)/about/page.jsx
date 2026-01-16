@@ -32,7 +32,7 @@ const About = () => {
         <p className="mt-3 font-semibold text-white">
           Have Queries ?
           <br /> 
-          Contact to @sahuayush47@gmail.com
+          Contact to @sahuayush467@gmail.com
         </p>
       </div>
     </div>

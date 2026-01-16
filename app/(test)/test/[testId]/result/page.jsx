@@ -49,17 +49,15 @@ const getAccuracyUI = (accuracy) => {
 };
 
 const Page = () => {
-  const [userId, setUserId] = useState(null);
+  // const [userId, setUserId] = useState(null);
 
-  useEffect(() => {
-    const id = localStorage.getItem("userId");
-    if (id) setUserId(JSON.parse(id));
-  }, []);
+  // useEffect(() => {
+  //   const id = localStorage.getItem("userId");
+  //   if (id) setUserId(JSON.parse(id));
+  // }, []);
 
   const result = useQuery(
-    api.results.getLatestResult,
-    userId ? { userId } : "skip"
-  );
+    api.results.getLatestResult);
 
   if (result === undefined)
     return (
@@ -69,7 +67,20 @@ const Page = () => {
       </div>
     );
 
-  if (!result) return <p>No result found</p>;
+  if (!result)
+    return (
+      <div className="w-screen h-[90vh] flex justify-center items-center">
+        <Loader className="size-7 text-purple-400 animate-spin transition-all" />
+        <p className="ml-2 font-normal capitalize">
+          Hold tight! Your result will appear on your
+          <Link
+            href="/profile"
+            className="font-semibold hover:underline hover:cursor-pointer text-purple-700"
+          > profile page.
+          </Link>
+        </p>
+      </div>
+    );
 
   const accuracy = Math.round(
     ((result.typedWords - result.wrongWords.length) / result.totalWords) * 100

@@ -1,29 +1,26 @@
 "use client";
 import Button from "@/components/Button";
 import { api } from "@/convex/_generated/api";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
-import { useQuery } from "convex/react";
+import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
 
 const Page = () => {
   const router = useRouter();
+  const { testId } = useParams();
+  const examId = useSearchParams().get("examId");
+
   const [fontSize, setFontsize] = useState(17);
   const [secondtimer, setsecondTimer] = useState(59);
   const [minutetimer, setminuteTimer] = useState(4);
-  const editorRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [userId, setUserId] = useState(null);
-  const saveResult = useMutation(api.results.saveResult);
-  const { testId } = useParams();
-  const backspaceCountRef = useRef(0);
-  const exams = useQuery(api.exams.getExams);
-  const examId = useSearchParams().get("examId");
 
-  useEffect(() => {
-    const id = localStorage.getItem("userId");
-    if (id) setUserId(JSON.parse(id));
-  }, []);
+  const editorRef = useRef(null);
+  const backspaceCountRef = useRef(0);
+
+  const exams = useQuery(api.exams.getExams);
+  const saveResult = useMutation(api.results.saveResult);
 
   useEffect(() => {
     const blockKeys = (e) => {
@@ -43,7 +40,6 @@ const Page = () => {
     const interval = setInterval(() => {
       setsecondTimer((prev) => prev - 1);
     }, 1000);
-
     return () => clearInterval(interval);
   }, [secondtimer]);
 
@@ -52,24 +48,9 @@ const Page = () => {
     const interval = setInterval(() => {
       setminuteTimer((prev) => prev - 1);
     }, 60000);
-
     return () => clearInterval(interval);
   }, [minutetimer]);
 
-  const reducesize = () => {
-    setFontsize((prev) => prev - 1);
-    console.log(fontSize);
-  };
-
-  const increasesize = () => {
-    setFontsize((prev) => prev + 1);
-    console.log(fontSize);
-  };
-
-  const resetsize = () => {
-    setFontsize(20);
-    console.log(fontSize);
-  };
   if (!exams || !examId) return null;
 
   const originalText = exams.find((e) => e._id === examId)?.paragraph;
@@ -109,19 +90,14 @@ const Page = () => {
   };
 
   const handleSubmit = async () => {
-    if (!userId) {
-      alert("User not found");
-      return;
-    }
-
     if (isSubmitting) return;
-
     setIsSubmitting(true);
+
     try {
       const result = checkErrors();
 
       await saveResult({
-        userId,
+        examId,
         totalWords: result.totalWords,
         typedWords: result.typedWords,
         wrongWords: result.wrongWords,
@@ -143,44 +119,51 @@ const Page = () => {
   };
 
   return (
-    <div>
-      <div className="flex sm:flex-row px-5 flex-col items-center justify-between">
-        <ul
-          className={`flex mt-2 p-2 rounded-md border-1 items-center justify-center flex-row gap-4 font-bold cursor-pointer`}
-        >
-          <li onClick={reducesize}>A-</li>
-          <li onClick={resetsize}>A</li>
-          <li onClick={increasesize}>A+</li>
-        </ul>
-        <span className="font-semibold text-lg">
-          Time:{minutetimer}:{secondtimer}
-        </span>
-      </div>
+    <>
+      <SignedIn>
+        <div>
+          <div className="flex sm:flex-row px-5 flex-col items-center justify-between">
+            <ul className="flex mt-2 p-2 rounded-md border items-center gap-4 font-bold cursor-pointer">
+              <li onClick={() => setFontsize((p) => p - 1)}>A-</li>
+              <li onClick={() => setFontsize(20)}>A</li>
+              <li onClick={() => setFontsize((p) => p + 1)}>A+</li>
+            </ul>
+            <span className="font-semibold text-lg">
+              Time: {minutetimer}:{secondtimer}
+            </span>
+          </div>
 
-      <div
-        style={{ fontSize: `${fontSize}px` }}
-        onCopy={(e) => e.preventDefault()}
-        onCut={(e) => e.preventDefault()}
-        onContextMenu={(e) => e.preventDefault()}
-        className="m-4 border-2 p-3 rounded-md "
-      >
-        {originalText}
-      </div>
+          <div
+            style={{ fontSize: `${fontSize}px` }}
+            onCopy={(e) => e.preventDefault()}
+            onCut={(e) => e.preventDefault()}
+            onContextMenu={(e) => e.preventDefault()}
+            className="m-4 border-2 p-3 rounded-md"
+          >
+            {originalText}
+          </div>
 
-      <div
-        ref={editorRef}
-        onKeyDown={handleKeyDown}
-        contentEditable
-        className="min-h-[60vh] max-h-fit border-2 rounded-md border-purple-300 bg-purple-100 outline-none m-4 p-3"
-      ></div>
-      <div className="flex justify-end sm:mt-10 mt-5  px-4">
-        <Button
-          text={isSubmitting ? "Submitting..." : "Submit Test"}
-          disabled={isSubmitting}
-          onClick={handleSubmit}
-        />
-      </div>
-    </div>
+          <div
+            ref={editorRef}
+            onKeyDown={handleKeyDown}
+            contentEditable
+            className="min-h-[60vh] border-2 rounded-md border-purple-300 bg-purple-100 outline-none m-4 p-3"
+          />
+
+          <div className="flex justify-end sm:mt-10 mt-5 px-4">
+            <Button
+              text={isSubmitting ? "Submitting..." : "Submit Test"}
+              disabled={isSubmitting}
+              onClick={handleSubmit}
+            />
+          </div>
+        </div>
+      </SignedIn>
+
+      <SignedOut>
+        <RedirectToSignIn />
+      </SignedOut>
+    </>
   );
 };
 

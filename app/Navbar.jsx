@@ -13,13 +13,10 @@ const Navbar = () => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const { isSignedIn, isLoaded, user } = useUser();
-  const EncryptedTextDemoSecond = dynamic(
-  () => import("./Encrypted"),
-  {
+  const EncryptedTextDemoSecond = dynamic(() => import("./Encrypted"), {
     ssr: false,
     loading: () => <span className="font-bold">TypeWithAakash</span>,
-  }
-);
+  });
 
   useEffect(() => {
     const handleResize = () => {
@@ -42,6 +39,10 @@ const Navbar = () => {
     } else {
       setOpen((prev) => !prev);
     }
+  };
+
+  const gotoProfile = () => {
+    router.push("/profile");
   };
 
   return (
@@ -91,6 +92,16 @@ const Navbar = () => {
 
               {open && isSignedIn && (
                 <div className="absolute right-0 mt-2 bg-white border rounded-lg shadow-lg">
+                  <button
+                    onClick={() => {
+                      gotoProfile();
+                      setMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 text-nowrap py-2 hover:bg-gray-100"
+                  >
+                    My Profile
+                  </button>
+                  <hr />
                   <SignOutButton>
                     <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-500">
                       Logout
@@ -140,7 +151,13 @@ const Navbar = () => {
               </Link>
             </ul>
             {isSignedIn && (
-              <button className="w-full p-2 mt-5 rounded-lg text-center bg-[#b657f5] text-white font-semibold text-md ">
+              <button
+                onClick={() => {
+                  gotoProfile();
+                  setMenuOpen(false);
+                }}
+                className="w-full p-2 mt-5 rounded-lg text-center bg-[#b657f5] text-white font-semibold text-md "
+              >
                 My Profile
               </button>
             )}
