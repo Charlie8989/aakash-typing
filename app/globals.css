@@ -122,7 +122,6 @@
   }
 }
 
-html,
 body {
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-geist-sans);
 }
