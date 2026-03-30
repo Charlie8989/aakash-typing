@@ -29,6 +29,16 @@ const Navbar = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const checkAuth = () => {
+    if (!isLoaded) return;
+
+    if (isSignedIn) {
+      router.push("/exams");
+    } else {
+      router.push("/sign-in");
+    }
+  };
+
   if (!isLoaded) {
     return null;
   }
@@ -63,9 +73,16 @@ const Navbar = () => {
             </li>
 
             <li>
-              <Link href="/exams" onClick={() => setMenuOpen(false)}>
+              <button
+              className="cursor-pointer"
+                onClick={() => {
+                  setMenuOpen(false);
+                  checkAuth();
+                }}
+                disabled={!isLoaded}
+              >
                 Exams
-              </Link>
+              </button>
             </li>
 
             <li>

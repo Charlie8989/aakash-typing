@@ -5,26 +5,15 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";
 
-const Dialog = ({ open, onClose, onStart,examId }) => {
+const Dialog = ({ open, onClose, onStart, examId }) => {
   const insertDummyUser = useMutation(api.user.insertDummyUser);
-  // console.log(examId)
+  const router = useRouter();
 
   const [name, setName] = useState("");
-  const [mode, setMode] = useState("practice");
+  const [keyLimit, setKeyLimit] = useState("");
+  const [timeLimit, setTimeLimit] = useState("");
 
   if (!open) return null;
-
-  const handleStart = async () => {
-    if (!name) {
-      alert("Name missing");
-      return;
-    }
-    const id = await insertDummyUser({
-      name,
-      selected_mode: mode,
-    });
-    localStorage.setItem("userId", JSON.stringify(id));
-  };
 
   const goFullScreen = () => {
     if (document.documentElement.requestFullscreen) {
@@ -32,12 +21,33 @@ const Dialog = ({ open, onClose, onStart,examId }) => {
     }
   };
 
-  const router = useRouter();
+  const startTest = async () => {
+    if (!name.trim()) return;
 
-  const startTest = (examId) => {
+    const limit = Number(keyLimit);
+    const time = Number(timeLimit);
+
+    const finalLimit = limit >= 10 ? limit : null;
+    const finalTime = time > 0 ? time : null;
+
+    if (finalLimit) localStorage.setItem("keyLimit", finalLimit);
+    if (finalTime) localStorage.setItem("timeLimit", finalTime);
+
+    const id = await insertDummyUser({
+      name: name.trim(),
+      key_limit: finalLimit || undefined,
+      time_limit: finalTime || undefined,
+    });
+
+    localStorage.setItem("userId", JSON.stringify(id));
+
     const testId = uuidv4();
-    router.push(`/test/${testId}?examId=${examId}`);
-    // localStorage.setItem("testId", testId);
+
+    let url = `/test/${testId}?examId=${examId}`;
+    if (finalLimit) url += `&limit=${finalLimit}`;
+    if (finalTime) url += `&time=${finalTime}`;
+
+    router.push(url);
   };
 
   return (
@@ -58,26 +68,46 @@ const Dialog = ({ open, onClose, onStart,examId }) => {
             onChange={(e) => setName(e.target.value)}
           />
 
-          <select
+          <input
+            type="number"
+            min="10"
+            value={keyLimit}
+            placeholder="Key limit (Please enter more than 10)"
             className="w-full border p-2 rounded"
-            required
-            value={mode}
-            onChange={(e) => setMode(e.target.value)}
-          >
-            <option>Select mode</option>
-            <option>Practice</option>
-            <option>Exam</option>
-          </select>
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === "" || Number(val) >= 10) {
+                setKeyLimit(val);
+              }
+            }}
+          />
+
+          <input
+            type="number"
+            min="1"
+            value={timeLimit}
+            placeholder="Time in minutes (Please enter more than 0)"
+            className="w-full border p-2 rounded"
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === "" || Number(val) > 0) {
+                setTimeLimit(val);
+              }
+            }}
+          />
 
           <button
+            disabled={!name.trim()}
             onClick={() => {
               onStart();
-              startTest();
               goFullScreen();
-              startTest(examId);
-              handleStart();
+              startTest();
             }}
-            className="w-full bg-purple-600 text-white py-2 rounded"
+            className={`w-full py-2 rounded text-white ${
+              name.trim()
+                ? "bg-purple-600 hover:bg-purple-700"
+                : "bg-gray-400 cursor-not-allowed"
+            }`}
           >
             Start Now
           </button>

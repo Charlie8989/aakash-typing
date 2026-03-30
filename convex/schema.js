@@ -3,9 +3,10 @@ import { v } from "convex/values";
 
 export default defineSchema({
   user: defineTable({
-    name: v.string(),
-    selected_mode: v.string(),
-  }),
+  name: v.string(),
+  key_limit: v.optional(v.number()),
+  time_limit: v.optional(v.number()),
+}),
 
   results: defineTable({
     userId: v.string(),
@@ -18,7 +19,7 @@ export default defineSchema({
         expected: v.string(),
         typed: v.string(),
         position: v.number(),
-      })
+      }),
     ),
     missingWords: v.array(v.string()),
     backspace: v.optional(v.number()),

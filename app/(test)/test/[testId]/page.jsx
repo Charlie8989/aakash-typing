@@ -9,18 +9,62 @@ import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
 const Page = () => {
   const router = useRouter();
   const { testId } = useParams();
-  const examId = useSearchParams().get("examId");
+  const searchParams = useSearchParams();
+  const examId = searchParams.get("examId");
+
+  const exams = useQuery(api.exams.getExams);
+  const saveResult = useMutation(api.results.saveResult);
 
   const [fontSize, setFontsize] = useState(17);
   const [secondtimer, setsecondTimer] = useState(59);
   const [minutetimer, setminuteTimer] = useState(4);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [, forceRender] = useState(0);
 
   const editorRef = useRef(null);
   const backspaceCountRef = useRef(0);
 
-  const exams = useQuery(api.exams.getExams);
-  const saveResult = useMutation(api.results.saveResult);
+  const paramLimit = Number(searchParams.get("limit"));
+  const paramTime = Number(searchParams.get("time"));
+
+  const fullText =
+    exams?.find((e) => e._id === examId)?.paragraph || "";
+
+  const finalKeyLimit =
+    paramLimit && paramLimit > 0 ? paramLimit : fullText.length;
+
+  const finalTime =
+    paramTime && paramTime > 0 ? paramTime : 5;
+
+  const originalText = fullText.slice(0, finalKeyLimit);
+
+  useEffect(() => {
+    const startMinute = finalTime > 0 ? finalTime - 1 : 0;
+    setminuteTimer(startMinute);
+    setsecondTimer(59);
+  }, [finalTime]);
+
+  useEffect(() => {
+    if (minutetimer === 0 && secondtimer === 0) {
+      handleSubmit();
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setsecondTimer((prev) => {
+        if (prev === 0) {
+          if (minutetimer > 0) {
+            setminuteTimer((m) => m - 1);
+            return 59;
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [minutetimer, secondtimer]);
 
   useEffect(() => {
     const blockKeys = (e) => {
@@ -35,43 +79,30 @@ const Page = () => {
     return () => document.removeEventListener("keydown", blockKeys);
   }, []);
 
-  useEffect(() => {
-    if (secondtimer <= 0) return;
-    const interval = setInterval(() => {
-      setsecondTimer((prev) => prev - 1);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [secondtimer]);
+  const getHighlightedOriginal = () => {
+    const typed = editorRef.current?.innerText || "";
+    const originalWords = originalText.split(" ");
+    const typedWords = typed.trim().split(/\s+/).filter(Boolean);
 
-  useEffect(() => {
-    if (minutetimer <= 0) return;
-    const interval = setInterval(() => {
-      setminuteTimer((prev) => prev - 1);
-    }, 60000);
-    return () => clearInterval(interval);
-  }, [minutetimer]);
-
-  if (!exams || !examId) return null;
-
-  const originalText = exams.find((e) => e._id === examId)?.paragraph;
-
-  const normalizeText = (text) =>
-    text.normalize("NFC").replace(/\s+/g, " ").trim();
+    return originalWords.map((word, i) => {
+      if (!typedWords[i]) return <span key={i}>{word} </span>;
+      if (typedWords[i] === word)
+        return <span key={i} className="bg-yellow-300">{word} </span>;
+      return <span key={i} className="bg-red-400 text-white">{word} </span>;
+    });
+  };
 
   const checkErrors = () => {
-    const typedText = normalizeText(editorRef.current?.innerText || "");
-    const original = normalizeText(originalText);
-
-    const originalWords = original.split(" ");
-    const typedWords = typedText.split(" ");
+    const typedText = editorRef.current?.innerText || "";
+    const originalWords = originalText.split(" ");
+    const typedWords = typedText.trim().split(/\s+/).filter(Boolean);
 
     let wrongWords = [];
     let missingWords = [];
 
     originalWords.forEach((word, index) => {
-      if (!typedWords[index]) {
-        missingWords.push(word);
-      } else if (typedWords[index] !== word) {
+      if (!typedWords[index]) missingWords.push(word);
+      else if (typedWords[index] !== word) {
         wrongWords.push({
           expected: word,
           typed: typedWords[index],
@@ -118,6 +149,12 @@ const Page = () => {
     }
   };
 
+  const handleInput = () => {
+    forceRender((p) => p + 1);
+  };
+
+  if (!exams || !examId) return null;
+
   return (
     <>
       <SignedIn>
@@ -133,20 +170,15 @@ const Page = () => {
             </span>
           </div>
 
-          <div
-            style={{ fontSize: `${fontSize}px` }}
-            onCopy={(e) => e.preventDefault()}
-            onCut={(e) => e.preventDefault()}
-            onContextMenu={(e) => e.preventDefault()}
-            className="m-4 border-2 p-3 rounded-md"
-          >
-            {originalText}
+          <div style={{ fontSize: `${fontSize}px` }} className="m-4 border-2 p-3 rounded-md">
+            {getHighlightedOriginal()}
           </div>
 
           <div
             ref={editorRef}
-            onKeyDown={handleKeyDown}
             contentEditable
+            onInput={handleInput}
+            onKeyDown={handleKeyDown}
             className="min-h-[60vh] border-2 rounded-md border-purple-300 bg-purple-100 outline-none m-4 p-3"
           />
 

@@ -1,6 +1,7 @@
 "use client";
 import Navbar from "@/app/Navbar";
 import { api } from "@/convex/_generated/api";
+import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { ArrowDownIcon, Loader } from "lucide-react";
 import Link from "next/link";
@@ -49,6 +50,8 @@ const getAccuracyUI = (accuracy) => {
 };
 
 const Page = () => {
+  const router = useRouter();
+
   // const [userId, setUserId] = useState(null);
 
   // useEffect(() => {
@@ -56,8 +59,7 @@ const Page = () => {
   //   if (id) setUserId(JSON.parse(id));
   // }, []);
 
-  const result = useQuery(
-    api.results.getLatestResult);
+  const result = useQuery(api.results.getLatestResult);
 
   if (result === undefined)
     return (
@@ -76,14 +78,16 @@ const Page = () => {
           <Link
             href="/profile"
             className="font-semibold hover:underline hover:cursor-pointer text-purple-700"
-          > profile page.
+          >
+            {" "}
+            profile page.
           </Link>
         </p>
       </div>
     );
 
   const accuracy = Math.round(
-    ((result.typedWords - result.wrongWords.length) / result.totalWords) * 100
+    ((result.typedWords - result.wrongWords.length) / result.totalWords) * 100,
   );
 
   const ui = getAccuracyUI(accuracy);
@@ -150,11 +154,40 @@ const Page = () => {
               </div>
             </div>
 
-            <button className="w-full bg-slate-800 text-white py-3 mt-4 rounded-full hover:bg-slate-900">
+            <button
+              className="w-full bg-slate-800 text-white py-3 mt-4 rounded-full hover:bg-slate-900"
+              onClick={() => {
+                router.prefetch("/exams");
+                router.push("/exams");
+              }}
+            >
               Continue
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="max-w-[700px] mx-auto mt-6 bg-white rounded-2xl shadow-md p-5">
+        <h3 className="font-semibold text-lg mb-3 text-red-500">
+          Wrong Words Breakdown
+        </h3>
+
+        {result.wrongWords.length === 0 ? (
+          <p className="text-green-600 font-medium">
+            🎉 No mistakes! Perfect typing.
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {result.wrongWords.map((word, i) => (
+              <div
+                key={i}
+                className="px-3 py-1 rounded-full bg-red-100 text-red-600 text-sm"
+              >
+                {word.typed} → {word.expected}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="w-full p-6 border-t-2 mt-3 sm:mt-20 flex justify-between items-center">
@@ -166,7 +199,13 @@ const Page = () => {
         </Link>
 
         <Link href="/exams">
-          <button className="flex items-center rounded-lg text-white bg-[#a629fa] hover:bg-[#7e38ad] border p-4 gap-2">
+          <button
+            onClick={() => {
+              router.prefetch("/exams");
+              router.push("/exams");
+            }}
+            className="flex items-center rounded-lg text-white bg-[#a629fa] hover:bg-[#7e38ad] border p-4 gap-2"
+          >
             Other Tests
             <ArrowDownIcon className="rotate-270 size-4" />
           </button>
