@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Aakash Typing Platform",
   description: "..",
+  appleWebApp: {
+    title: "Typewithaakash",
+  },
 };
 
 export default function RootLayout({ children }) {

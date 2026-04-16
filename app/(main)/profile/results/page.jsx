@@ -14,7 +14,8 @@ const calcAccuracy = (r) =>
   Math.round(((r.typedWords - r.wrongWords.length) / r.totalWords) * 100);
 
 const Page = () => {
-  const results = useQuery(api.results.getAllResults);
+  const resultsData = useQuery(api.results.getAllResults);
+  const results = resultsData ? [...resultsData].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) : resultsData;
 
   if (results === undefined)
     return (

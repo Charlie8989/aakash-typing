@@ -108,7 +108,7 @@ const AdminPage = () => {
 
           <input
             type="number"
-            placeholder="Time (like this 5:00)"
+            placeholder="Time (like this 5:00 Min)"
             value={form.time}
             onChange={(e) => handleChange("time", e.target.value)}
             className="w-full border p-3 rounded-lg"

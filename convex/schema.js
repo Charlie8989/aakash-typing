@@ -10,6 +10,9 @@ export default defineSchema({
 
   results: defineTable({
     userId: v.string(),
+    userEmail: v.optional(v.string()),
+    userName: v.optional(v.string()),
+    userImageUrl: v.optional(v.string()),
     totalWords: v.number(),
     examId: v.optional(v.id("exams")),
     examName: v.optional(v.string()),

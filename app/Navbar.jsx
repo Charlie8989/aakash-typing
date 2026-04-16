@@ -67,14 +67,14 @@ const Navbar = () => {
         {!isMobile && (
           <ul className="flex gap-7 items-center relative">
             <li>
-              <Link href="/" onClick={() => setMenuOpen(false)}>
+              <Link href="/" onClick={() => setMenuOpen(false)} className="transition-all duration-300 hover:text-purple-600 hover:scale-110 inline-block">
                 Home
               </Link>
             </li>
 
             <li>
               <button
-              className="cursor-pointer"
+              className="cursor-pointer transition-all duration-300 hover:text-purple-600 hover:scale-110"
                 onClick={() => {
                   setMenuOpen(false);
                   checkAuth();
@@ -86,8 +86,14 @@ const Navbar = () => {
             </li>
 
             <li>
-              <Link href="/about" onClick={() => setMenuOpen(false)}>
+              <Link href="/about" onClick={() => setMenuOpen(false)} className="transition-all duration-300 hover:text-purple-600 hover:scale-110 inline-block">
                 About
+              </Link>
+            </li>
+
+            <li>
+              <Link href="/leaderboard" onClick={() => setMenuOpen(false)} className="transition-all duration-300 hover:text-purple-600 hover:scale-110 inline-block">
+                Leaderboard
               </Link>
             </li>
 
@@ -158,13 +164,16 @@ const Navbar = () => {
 
             <ul className="flex flex-col gap-4 text-lg">
               <Link href="/">
-                <li onClick={() => setMenuOpen(false)}>Home</li>
+                <li onClick={() => setMenuOpen(false)} className="transition-all duration-300 hover:text-purple-600 hover:translate-x-2">Home</li>
               </Link>
               <Link href="/exams">
-                <li onClick={() => setMenuOpen(false)}>Exams</li>
+                <li onClick={() => setMenuOpen(false)} className="transition-all duration-300 hover:text-purple-600 hover:translate-x-2">Exams</li>
               </Link>{" "}
               <Link href="/about">
-                <li onClick={() => setMenuOpen(false)}>About</li>
+                <li onClick={() => setMenuOpen(false)} className="transition-all duration-300 hover:text-purple-600 hover:translate-x-2">About</li>
+              </Link>
+              <Link href="/leaderboard">
+                <li onClick={() => setMenuOpen(false)} className="transition-all duration-300 hover:text-purple-600 hover:translate-x-2">Leaderboard</li>
               </Link>
             </ul>
             {isSignedIn && (

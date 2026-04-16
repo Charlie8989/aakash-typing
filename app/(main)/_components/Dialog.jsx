@@ -72,11 +72,11 @@ const Dialog = ({ open, onClose, onStart, examId }) => {
             type="number"
             min="10"
             value={keyLimit}
-            placeholder="Key limit (Please enter more than 10)"
+            placeholder="Key limit (Please enter not less than 10)"
             className="w-full border p-2 rounded"
             onChange={(e) => {
               const val = e.target.value;
-              if (val === "" || Number(val) >= 10) {
+              if (val === "" || !isNaN(val)) {
                 setKeyLimit(val);
               }
             }}
@@ -97,16 +97,18 @@ const Dialog = ({ open, onClose, onStart, examId }) => {
           />
 
           <button
-            disabled={!name.trim()}
+            disabled={
+              !name.trim() || (keyLimit !== "" && Number(keyLimit) < 10)
+            }
             onClick={() => {
               onStart();
               goFullScreen();
               startTest();
             }}
             className={`w-full py-2 rounded text-white ${
-              name.trim()
-                ? "bg-purple-600 hover:bg-purple-700"
-                : "bg-gray-400 cursor-not-allowed"
+              !name.trim() || (keyLimit !== "" && Number(keyLimit) < 10)
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-purple-600 hover:bg-purple-700"
             }`}
           >
             Start Now

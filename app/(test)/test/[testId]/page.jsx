@@ -4,10 +4,11 @@ import { api } from "@/convex/_generated/api";
 import { useMutation, useQuery } from "convex/react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
-import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
+import { SignedIn, SignedOut, RedirectToSignIn, useUser } from "@clerk/nextjs";
 
 const Page = () => {
   const router = useRouter();
+  const { user: clerkUser } = useUser();
   const { testId } = useParams();
   const searchParams = useSearchParams();
   const examId = searchParams.get("examId");
@@ -84,11 +85,21 @@ const Page = () => {
     const originalWords = originalText.split(" ");
     const typedWords = typed.trim().split(/\s+/).filter(Boolean);
 
+    // Find the current word index being typed
+    // Count complete words (words followed by space)
+    const spaceCount = (typed.match(/ /g) || []).length;
+    const currentWordIndex = spaceCount;
+
     return originalWords.map((word, i) => {
-      if (!typedWords[i]) return <span key={i}>{word} </span>;
-      if (typedWords[i] === word)
-        return <span key={i} className="bg-yellow-300">{word} </span>;
-      return <span key={i} className="bg-red-400 text-white">{word} </span>;
+      // Only highlight the current word being typed
+      if (i === currentWordIndex) {
+        if (!typedWords[i]) return <span key={i}>{word} </span>;
+        if (typedWords[i] === word)
+          return <span key={i} className="bg-yellow-300">{word} </span>;
+        return <span key={i} className="bg-red-400 text-white">{word} </span>;
+      }
+      // All other words have no highlight
+      return <span key={i}>{word} </span>;
     });
   };
 
@@ -126,6 +137,8 @@ const Page = () => {
 
     try {
       const result = checkErrors();
+      const userEmail = clerkUser?.primaryEmailAddress?.emailAddress;
+      const userImageUrl = clerkUser?.imageUrl;
 
       await saveResult({
         examId,
@@ -134,6 +147,8 @@ const Page = () => {
         wrongWords: result.wrongWords,
         missingWords: result.missingWords,
         backspace: result.backspace,
+        userEmail,
+        userImageUrl,
       });
     } catch (err) {
       console.error(err);
